@@ -2,6 +2,11 @@ package com.d5power.core.mission
 {
 	public interface IMissionDispatcher
 	{
+		function publicCheck(type:uint,value:String,num:String):Boolean
+		/**
+		 * 是否具备某个条件的独立检查器
+		 */ 
+		function hasChecker(type:uint):Boolean
 		/**
 		 * 是否具备某个任务
 		 */ 

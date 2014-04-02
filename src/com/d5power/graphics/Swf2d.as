@@ -13,7 +13,6 @@ package com.d5power.graphics
 	public class Swf2d implements ISwfDisplayer
 	{
 		private var _list:Array;
-		private var _xml:XML;
 		private var _time:int = 0;
 		private var _bmd:Bitmap;
 		private var _frame:int = 0;
@@ -21,8 +20,14 @@ package com.d5power.graphics
 		
 		private var _swfPath:String;
 		private var _nowFrame:uint;
-		
+		private var _totalFrame:uint;
 		private var _onResReady:Function;
+		private var _playSpeed:uint;
+		private var _loop:Boolean=true;
+		
+		private var _offsetX:int;
+		private var _offsetY:int;
+		
 		
 		public function Swf2d()
 		{
@@ -87,7 +92,6 @@ package com.d5power.graphics
 			_onResReady = null;
 			_bmd.bitmapData=null;
 			_list = null;
-			_xml = null;
 		}
 		
 		public function changeSWF(file:String,inPool:Boolean=true):void
@@ -98,7 +102,6 @@ package com.d5power.graphics
 				_bmd.bitmapData = null;
 				
 				_list = null;
-				_xml = null;
 			}
 			
 			if(_shadow)
@@ -113,52 +116,10 @@ package com.d5power.graphics
 		public function setSWF(data:Object):void
 		{
 			_list = data.list;
-			_xml = data.xml;
-			
-			initPlay();
-			
-			if(_onResReady!=null)
-			{
-				_onResReady();
-				_onResReady = null;
-			}
-		}
-
-		public function render():void
-		{
-			if(_xml==null) return;
-			var cost_time:Number = (getTimer() - _time) / int(_xml.@Time);
-			if (_frame != cost_time)
-			{
-				_frame = cost_time;
-				_nowFrame = int(cost_time % _list.length);
-				_bmd.bitmapData = _list[_nowFrame];
-			}
-		}
-		
-		public function set scaleX(v:Number):void
-		{
-			_bmd.scaleX = v;
-			if(!_xml) return;
-			if(v<0)
-			{
-				_bmd.x = int(_xml.@X)-_bmd.width*v;
-			}else{
-				_bmd.x = int(_xml.@X);
-			}
-		}
-		
-		/**
-		 * 初始化播放器
-		 */ 
-		private function initPlay():void
-		{
-			if (_list.length == 0) return;
-			
-			
-			
+			_offsetX = int(data.xml.@X);
+			_offsetY = int(data.xml.@Y);
 			_time = getTimer();
-
+			_playSpeed = int(data.xml.@Time);
 			
 			_bmd.bitmapData = _list[0];
 			
@@ -167,16 +128,50 @@ package com.d5power.graphics
 			var py:int;
 			
 			
-			_bmd.x = int(_xml.@X) + px;
-			_bmd.y = int(_xml.@Y) + py;
+			_bmd.x = _offsetX + px;
+			_bmd.y = _offsetY + py;
 			
-
+			
 			var matr:Matrix = new Matrix();
 			matr.createGradientBox(50, 30,0,-25,-15);
 			_shadow.graphics.beginGradientFill(GradientType.RADIAL,[0,0],[1,0],[0,255],matr);
 			_shadow.graphics.drawEllipse(-25, -15, 50, 30);
-			_shadow.scaleX = Number(_xml.@shadowX) * 0.01;
-			_shadow.scaleY = Number(_xml.@shadowY) * 0.01;
+			_shadow.scaleX = Number(data.xml.@shadowX) * 0.01;
+			_shadow.scaleY = Number(data.xml.@shadowY) * 0.01;
+			
+			if(_onResReady!=null)
+			{
+				_onResReady();
+				_onResReady = null;
+			}
+		}
+		
+		private var lastRender:uint;
+		public function render():void
+		{
+			if(_list==null || (!_loop && _nowFrame==_totalFrame) || Global.Timer-lastRender<_playSpeed) return;
+			
+			lastRender = Global.Timer;
+			var cost_time:Number = (lastRender - _time) / _playSpeed;
+			
+			if (_frame != cost_time)
+			{
+				_nowFrame = int(cost_time % _list.length);
+				_frame = cost_time;
+				_bmd.bitmapData = _list[_nowFrame];
+			}
+		}
+		
+		public function set scaleX(v:Number):void
+		{
+			_bmd.scaleX = v;
+			if(_list==null) return;
+			if(v<0)
+			{
+				_bmd.x = _offsetX-_bmd.width*v;
+			}else{
+				_bmd.x = _offsetX;
+			}
 		}
 	}
 }

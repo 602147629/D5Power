@@ -20,6 +20,7 @@ package com.d5power.core
 	import com.d5power.objects.BuildingObject;
 	import com.d5power.objects.CharacterObject;
 	import com.d5power.objects.EffectObject;
+	import com.d5power.objects.EventObject;
 	import com.d5power.objects.GameObject;
 	import com.d5power.objects.IGO;
 	import com.d5power.objects.NCharacterObject;
@@ -38,7 +39,10 @@ package com.d5power.core
 	
 	use namespace NSCamera;
 	use namespace NSGraphics;
-
+	
+	/**
+	 * 游戏场景
+	 */  
 	public class BaseScene
 	{
 		
@@ -63,33 +67,42 @@ package com.d5power.core
 		protected var map:WorldMap;
 		
 		/**
-		 * 双缓冲区
+		 * 对当前舞台的引用
 		 */ 
-		//public var doubleBuffer:BitmapData;
-		
-		protected var _mapGround:Shape;
-		
-		/**
-		 * 效果缓冲区，本缓冲区位于最上层
-		 */ 
-		//public var effectBuffer:BitmapData;		
-		
 		protected var _stage:Stage;
 		
+		/**
+		 * 状态：场景是否准备完毕。该状态将在地图初始化后设置为true
+		 */ 
 		protected var _isReady:Boolean=false;
 		
 		/**
 		 * 主角
 		 */ 
 		protected static var player:CharacterObject;
-		
 
-		
+		/**
+		 * 主容器
+		 */ 
 		protected var _container:DisplayObjectContainer;
 		
+		/**
+		 * 显示层：游戏对象
+		 */ 
 		protected var _layer_go:Sprite;
+		/**
+		 * 显示层：顶层特效
+		 */ 
 		protected var _layer_effect:Sprite;
+		/**
+		 * 显示层：底层特效
+		 */ 
 		protected var _layer_effect_down:Sprite;
+		
+		/**
+		 * 显示层：远景
+		 */ 
+		protected var _layer_background_far:Sprite;
 
 		/**
 		 * 深度使用列表
@@ -111,7 +124,10 @@ package com.d5power.core
 		 */ 
 		private var _nowRunOutSceneCtrl:uint;
 		
-		
+		/**
+		 * 上一次的排序时间
+		 */ 
+		private var _lastOrder:uint;
 		
 		/**
 		 * @param	stg			舞台
@@ -137,13 +153,12 @@ package com.d5power.core
 			_layer_go = new Sprite;
 			_layer_effect = new Sprite;
 			_layer_effect_down = new Sprite;
-	
+			_layer_background_far = new Sprite;
+			
+			_container.addChild(_layer_background_far);
 			_container.addChild(_layer_effect_down);
 			_container.addChild(_layer_go);
 			_container.addChild(_layer_effect);
-			
-			
-			buildBuffer();
 		}
 		
 		/**
@@ -157,11 +172,10 @@ package com.d5power.core
 			map = new WorldMap(mapid);
 			map.hasTile = hasTile;
 			map.tileFormat = tileFormat;
-			map.dbuffer = _mapGround;
 			map.install();
 			
 			
-			_container.addChild(_mapGround);
+			_container.addChild(map.dbuffer);
 			_isReady = true;
 		}
 		
@@ -266,6 +280,40 @@ package com.d5power.core
 		}
 		
 		/**
+		 * 创建事件
+		 */ 
+		public function createEvent(id:uint,posx:uint,posy:uint):EventObject
+		{
+			// 检查是否有重复事件
+			for(var i:uint=0,j:uint=_objects.length;i<j;i++)
+			{
+				if(_objects[i] is EventObject && (_objects[i] as EventObject).ID==id)
+				{
+					return _objects[i];
+				}
+			}
+			var evt:EventObject = new EventObject();
+			evt.ID = id;
+			evt.setPos(posx,posy);
+			addObject(evt);
+			return evt;
+		}
+		
+		/**
+		 * 移除事件
+		 */ 
+		public function removeEvent(id:uint):void
+		{
+			for(var i:uint=0,j:uint=_objects.length;i<j;i++)
+			{
+				if(_objects[i] is EventObject && (_objects[i] as EventObject).ID==id)
+				{
+					(_objects[i]  as EventObject).deleteing = true;
+				}
+			}
+		}
+		
+		/**
 		 * 创建玩家
 		 * @param	s		位图资源
 		 * @param	name	玩家姓名
@@ -313,22 +361,12 @@ package com.d5power.core
 			D5Camera.$needReCut = false;
 		}
 		
-
+		/**
+		 * 游戏主角。请在单人RPG游戏中使用
+		 */ 
 		public function get Player():CharacterObject
 		{
 			return player;
-		}
-		
-		/**
-		 * 初始化缓冲区
-		 */ 
-		public function buildBuffer():void
-		{
-			//doubleBuffer = new BitmapData(Global.W,Global.H,false,0);
-			//effectBuffer = new BitmapData(Global.W,Global.H,false,0);
-			
-			_mapGround = new Shape();
-			//_mapGround.cacheAsBitmap=true;
 		}
 
 		
@@ -338,7 +376,7 @@ package com.d5power.core
 		public function addObject(o:IGO):void
 		{
 			var index:int = _objects.indexOf(o);
-			if(index==-1)_objects.push(o);
+			if(index==-1) _objects.push(o);
 
 			if(D5Camera.cameraView.containsPoint(o._POS))
 			{
@@ -354,9 +392,20 @@ package com.d5power.core
 		 */ 
 		public function $insertObject(obj:IGO):void
 		{
-			_inScreen.push(obj);
+			if(_inScreen.indexOf(obj)==-1) _inScreen.push(obj);
 			_layer_go.addChild(obj as DisplayObject);
 		}
+		
+		/**
+		 * 在恢复场景播放后，将渲染排序置0
+		 * 这样可以在必要的时候，暂停游戏渲染，移除某个对象后再恢复渲染
+		 * 避免在渲染过程中的for循环里因为数组长度改变而引起错误
+		 */ 
+		public function reset():void
+		{
+			_nowRend = 0;
+		}
+		
 		/**
 		 * IGO接口调用专供，其他位置请勿使用
 		 * 从场景中移除对象
@@ -376,12 +425,12 @@ package com.d5power.core
 		}
 		
 		/**
-		 * 
+		 * 移除某个特定的游戏对象
+		 * @param	index	游戏对象的索引号
 		 */ 
 		private function removeObject(index:uint):void
 		{
 			var data:Array = _objects.splice(index,1);
-			
 			data[0].dispose();
 		}
 		
@@ -472,11 +521,22 @@ package com.d5power.core
 			draw();
 		}
 		
+		/**
+		 * 更新游戏时钟
+		 */ 
 		protected function updateTime():void
 		{
 			Global.Timer = getTimer();
 		}
 		
+		/**
+		 * 排序时间
+		 */ 
+		private const _orderTime:uint=500;
+		
+		/**
+		 * 渲染
+		 */ 
 		protected function draw():void
 		{
 			map.render();
@@ -492,12 +552,12 @@ package com.d5power.core
 			
 			for(i=_inScreen.length-1;i>=0;i--)
 			{
-				if(_inScreen[0].deleteing || !_inScreen[0].inScreen) _inScreen.splice(i,1);
+				if(_inScreen[i].deleteing || !_inScreen[i].inScreen) _inScreen.splice(i,1);
 			}
-			
-			if(_nowRend==0)
+
+			if(Global.Timer-_lastOrder>_orderTime)
 			{
-				_nowRend = _objects.length;
+				_lastOrder = Global.Timer;
 				_inScreen.sortOn("zOrder",Array.NUMERIC);
 
 				var orderCount:uint = _inScreen.length;
@@ -513,27 +573,31 @@ package com.d5power.core
 						if(child!=child_now && _layer_go.contains(child_now)) _layer_go.setChildIndex(child_now,orderCount);
 					}
 				}
-				_container.setChildIndex(_mapGround,0);
+				if(_container.contains(map.dbuffer))
+				{
+					_container.setChildIndex(map.dbuffer,1);
+				}else{
+					trace("[BaseScene] 未在背景容器中发现");
+				}
 				ReCut();
 			}
 			
-			if(getTimer()-Global.Timer>D5Camera.RenderMaxTime) return;
-			
 			// 循环对象
 			var target:IGO;
+			if(_nowRend<0) _nowRend = _objects.length;
 			while(_nowRend--)
 			{
 				target = _objects[_nowRend];
+				if(!target.inScreen) continue;
 				target.renderMe();
 				if(getTimer()-Global.Timer>D5Camera.RenderMaxTime) break;
 			}
-			if(_nowRend<0) _nowRend=0;
-
-			
-			
 			D5Game.me.camera.update();
 		}
 		
+		/**
+		 * 获取主容器
+		 */ 
 		public function get container():DisplayObjectContainer
 		{
 			return _container;
@@ -541,13 +605,29 @@ package com.d5power.core
 		
 		public function clear():void
 		{
-			_objects.splice(0,_objects.length);
+			var obj:GameObject;
+			
+			while(_objects.length)
+			{
+				obj = _objects.shift();
+				if(obj && obj.parent)
+				{
+					obj.parent.removeChild(obj);
+					obj.dispose();
+				}
+			}
+
+			while(_inScreen.length)
+			{
+				obj = _inScreen.shift();
+				if(obj && obj.parent) obj.parent.removeChild(obj);
+			}
 			
 			while(_layer_effect.numChildren) _layer_effect.removeChildAt(0);
+			while(_layer_go.numChildren) _layer_go.removeChildAt(0);
+			while(_layer_effect_down.numChildren) _layer_effect_down.removeChildAt(0);
+			while(_layer_background_far.numChildren) _layer_background_far.removeChildAt(0);
 			while(_container.numChildren) _container.removeChildAt(0);
-			
-			_mapGround.graphics.clear();
-			_mapGround = null;
 			
 			if(player) player.controler.unsetupListener();
 			//doubleBuffer.dispose();

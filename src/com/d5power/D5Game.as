@@ -74,7 +74,7 @@ package com.d5power
 		/**
 		 * 内容遮罩
 		 */ 
-		private var _masker:Shape;
+		//private var _masker:Shape;
 		
 		/**
 		 * Stage3D对象
@@ -132,6 +132,11 @@ package com.d5power
 		
 		protected var _readyBack:Function;
 		
+		/**
+		 * 控制器是否可控
+		 */ 
+		public var canController:Boolean=true;
+		
 		private static var _me:D5Game;
 		
 		/**
@@ -168,11 +173,35 @@ package com.d5power
 			
 		}
 		
+		/**
+		 * 获取相对于主显示区的舞台坐标
+		 * 当地图比画面尺寸小时，会调整主显示区位置以得到最好的渲染效果
+		 * 但这样会导致直接获取stageX和stageY不准。此时可以通过本方法获取相对比较准确的舞台坐标
+		 */ 
+		public function get stageX():Number
+		{
+			return stage.mouseX/scaleX-x;
+		}
+		
+		/**
+		 * 获取相对于主显示区的舞台坐标
+		 */
+		public function get stageY():Number
+		{
+			return stage.mouseY/scaleY-y;
+		}
+		
+		/**
+		 * 当前的起始坐标
+		 */ 
 		public function get startX():uint
 		{
 			return _startX;
 		}
 		
+		/**
+		 * 当前的起始坐标
+		 */
 		public function get startY():uint
 		{
 			return _startY;
@@ -191,13 +220,13 @@ package com.d5power
 		 * @param	autoSetup	是否自安装，如果设置为true，则需要覆写D5Game的setupMySelf方法进行自行配置。如果设置为false，则进行引擎标准的地图加载过程
 		 * @param	sameMap		同地图不切换开关，设置为true，如果为相同地图，则不进行切换
 		 */ 
-		public function changeMap(mapid:uint,px:uint,py:uint,autoSetup:Boolean=false,sameMap:Boolean=true):void
-		{
-			var event:ChangeMapEvent = new ChangeMapEvent(mapid,px,py,autoSetup,sameMap);
-			setconfig(mapid);
-			onChangeMap(event);
-		}
-		
+//		public function changeMap(mapid:uint,px:uint,py:uint,autoSetup:Boolean=false,sameMap:Boolean=true):void
+//		{
+//			var event:ChangeMapEvent = new ChangeMapEvent(mapid,px,py,autoSetup,sameMap);
+//			setconfig(mapid);
+//			onChangeMap(event);
+//		}
+//		
 		public function get projPath():String
 		{
 			return _projPath;
@@ -222,8 +251,8 @@ package com.d5power
 			
 			setGlobalSize();
 			
-			_stg.align = StageAlign.TOP_LEFT;
-			_stg.scaleMode = StageScaleMode.NO_SCALE;
+			//_stg.align = StageAlign.TOP_LEFT;
+			//_stg.scaleMode = StageScaleMode.NO_SCALE;
 			
 			removeEventListener(Event.ADDED_TO_STAGE,install);
 			
@@ -238,6 +267,25 @@ package com.d5power
 			
 		}
 		
+		/**
+		 * 相对舞台坐标X
+		 * 由于根据不同的对齐方式，场景会自动调整位置。因此必须通过此方法来获得正确的舞台坐标
+		 */ 
+		public function stgX(sx:Number):uint
+		{
+			return sx - x;
+		}
+		/**
+		 * 相对舞台坐标Y
+		 * 由于根据不同的对齐方式，场景会自动调整位置。因此必须通过此方法来获得正确的舞台坐标
+		 */ 
+		public function stgY(sy:Number):uint
+		{
+			return sy - y;
+		}
+		
+		
+		private var _masker:Shape;
 		protected function setGlobalSize(w:uint=0,h:uint=0):void
 		{
 			if(w==0) w=Global.MAPSIZE.x;
@@ -245,6 +293,12 @@ package com.d5power
 			
 			Global.W = w<_stg.stageWidth ? w : _stg.stageWidth;
 			Global.H = h<_stg.stageHeight ? h : _stg.stageHeight;
+			
+			if(Global.SCREEN_H!=0 && Global.SCREEN_W!=0)
+			{
+				Global.W = Global.SCREEN_W;
+				Global.H = Global.SCREEN_H;
+			}
 			
 			if(_masker==null)
 			{
@@ -279,8 +333,11 @@ package com.d5power
 				case ZOOM_FULL:
 					scaleX = _stg.stageWidth/Global.W;
 					scaleY = _stg.stageHeight/Global.H;
-					x = int((_stg.stageWidth-Global.W*scaleX)>>1);
-					y = int((_stg.stageHeight-Global.H*scaleY)>>1);
+					
+					var k:Number = scaleX>scaleY ? scaleY : scaleX;
+					scaleX = scaleY = k;
+					x = int((_stg.stageWidth-Global.W*k)>>1);
+					y = int((_stg.stageHeight-Global.H*k)>>1);
 					break;
 			}
 		}
@@ -292,6 +349,14 @@ package com.d5power
 		{
 			stop();
 			_scene.changeScene(mapid,tox,toy);
+		}
+		
+		/**
+		 * 触发事件
+		 */ 
+		public function makeRPGEvent(id:uint):void
+		{
+			
 		}
 		
 		
@@ -593,7 +658,7 @@ package com.d5power
 				_readyBack = null;
 			}
 			
-			
+			setGlobalSize();
 			//if(stage.stageWidth>Global.MAPSIZE.x) x = int((stage.stageWidth-Global.MAPSIZE.x)>>1);
 			
 		}
@@ -648,7 +713,7 @@ package com.d5power
 			timer.stop();
 			timer.removeEventListener(TimerEvent.TIMER,autoUnsetup);
 			
-			if(_scene)_scene.clear();
+			if(_scene) _scene.clear();
 			_scene = null;
 			
 			if(_nextStep!=null) _nextStep();
@@ -669,7 +734,11 @@ package com.d5power
 		{
 			if(hasEventListener(Event.ENTER_FRAME)) return;
 			addEventListener(Event.ENTER_FRAME,render);
-			if(_scene && _scene.Player!=null) _scene.Player.controler.setupListener();
+			if(_scene)
+			{
+				_scene.reset();
+				if(_scene.Player!=null) _scene.Player.controler.setupListener();
+			}
 		}
 		
 		/**

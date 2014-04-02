@@ -65,6 +65,8 @@ package com.d5power.utils
 		
 		private var _userdataDisplayer:IUserDataDisplayer;
 		
+		private var _onAddMission:Function;
+		
 		/**
 		 *	@param		ispc	是否玩家 
 		 */
@@ -75,6 +77,16 @@ package com.d5power.utils
 			_urlLoader = new URLLoader();
 			_urlLoader.addEventListener(Event.COMPLETE,onCompleteFunction);
 			_urlLoader.addEventListener(IOErrorEvent.IO_ERROR,ioerror);
+		}
+		
+		/**
+		 * 设置一个当获得任务的时候调用的函数
+		 * 本参数可用于根据任务打开UI面板等和任务相关的调用
+		 * @param	f	调用的参数，回叫时将提供一个uint型的任务ID
+		 */ 
+		public function set onAddMission(f:Function):void
+		{
+			_onAddMission = f;
 		}
 		
 		public function set userdataDisplayer(value:IUserDataDisplayer):void
@@ -93,6 +105,27 @@ package com.d5power.utils
 			return _startMission;
 		}
 		
+		public function hasChecker(type:uint):Boolean
+		{
+			return hasOwnProperty('checker'+type);
+		}
+		
+		public function publicCheck(type:uint,value:String,num:String):Boolean
+		{
+			return this['checker'+type](value,num);
+		}
+		
+		/**
+		 * 刷新任务，尝试完成现有任务
+		 */  
+		public function flushMission():void
+		{
+			for each(var mis:MissionData in _missionList)
+			{
+				mis.complate(this);
+			}
+		}
+		
 		/**
 		 * 给予游戏币
 		 */ 
@@ -107,6 +140,19 @@ package com.d5power.utils
 		public function hasMission(m:MissionData):Boolean
 		{
 			return _missionList.indexOf(m)!=-1;
+		}
+		
+		/**
+		 * 是否有某个ID的任务
+		 */ 
+		public function hasMissionById(id:uint):Boolean
+		{
+			for each(var obj:MissionData in _missionList)
+			{
+				if(obj.id==id) return true;
+			}
+			
+			return false;
 		}
 		
 		public function hasItemNum(itemid:uint):uint
@@ -176,17 +222,17 @@ package com.d5power.utils
 		public function addMissionById(mission_id:uint):void
 		{
 			_missionLoadingList.push(mission_id);
-			if(_missionLoadingList.length==1) loadMissionConfig();
-			
+			if(_missionLoadingList.length>0) loadMissionConfig();
 		}
 		
 		private function loadMissionConfig():void
 		{
 			if(_missionLoadingList.length==0)
 			{
-				if(D5Game.me.scene) D5Game.me.scene.missionLoaded();
+				if(D5Game.me && D5Game.me.scene) D5Game.me.scene.missionLoaded();
 				return;
 			}
+			//trace("加载任务："+_missionLoadingList[0]+".xml");
 			_urlLoader.load(new URLRequest("asset/data/mission/"+_missionLoadingList[0]+".xml"));
 		}
 		
@@ -198,6 +244,8 @@ package com.d5power.utils
 			_missionList.push(missionData);
 			_missionLoadingList.shift();
 			loadMissionConfig();
+			
+			if(_onAddMission!=null) _onAddMission(missionData.id);
 		}
 		
 		private function ioerror(evt:IOErrorEvent):void
@@ -210,6 +258,16 @@ package com.d5power.utils
 		public function get missionNum():uint
 		{
 			return _missionList.length;
+		}
+		
+		/**
+		 * 获取最后一个任务ID
+		 */ 
+		public function get lastMissionid():uint
+		{
+			var id:uint = 0;
+			for each(var obj:MissionData in _missionList) id = obj.id>id ? obj.id : id;
+			return id;
 		}
 		
 		public function getMissionByIndex(index:uint):MissionData

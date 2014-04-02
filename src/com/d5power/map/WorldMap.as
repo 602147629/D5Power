@@ -230,6 +230,8 @@ package com.d5power.map
 			eventSender = new EventDispatcher();
 			_turnResult = new Point();
 			MapResource = {tiles:new Object()};
+			
+			_dbuffer = new Shape();
 		}
 		
 		public function get mapid():uint
@@ -243,6 +245,10 @@ package com.d5power.map
 			_turnResult = null;
 			MapResource = null;
 			
+			_dbuffer.graphics.clear();
+			buffer.dispose();
+			_smallMap.dispose();
+			_scache.dispose();
 		}
 		
 		public function resize():void
@@ -489,9 +495,9 @@ package com.d5power.map
 			return _turnResult;
 		}
 		
-		public function set dbuffer(v:Shape):void
+		public function get dbuffer():Shape
 		{
-			_dbuffer = v;
+			return _dbuffer;
 		}
 		
 		/**
@@ -775,9 +781,8 @@ package com.d5power.map
 			}else{
 				_targetData = MapResource.tiles[py+'_'+px];
 				_targetP.x = (px-_nowStartX)*Global.TILE_SIZE.x;
-				_targetP.y = (py-_nowStartY)*Global.TILE_SIZE.x;
+				_targetP.y = (py-_nowStartY)*Global.TILE_SIZE.y;
 			}
-			
 			
 			if(_targetData)
 			{

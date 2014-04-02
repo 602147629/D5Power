@@ -31,7 +31,7 @@ package com.d5power.stuff
 		 * @param		ytype		Y轴位置，若大于1则使用该值进行定位
 		 * @param		resource	使用素材
 		 */ 
-		public function HSpbar(target:CharacterObject,attName:String,attMaxName:String,ytype:uint = 1)
+		public function HSpbar(target:CharacterObject,attName:String,attMaxName:String,ytype:int = 1)
 		{
 			y = ytype;
 			x = -(_size>>1);

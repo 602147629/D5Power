@@ -8,6 +8,7 @@ package com.d5power.objects
 {
 	import com.d5power.D5Camera;
 	import com.d5power.D5Game;
+	import com.d5power.controller.Actions;
 	import com.d5power.controller.BaseControler;
 	import com.d5power.graphics.ISwfDisplayer;
 	import com.d5power.map.WorldMap;
@@ -88,6 +89,7 @@ package com.d5power.objects
 		private var _resname:String;
 		
 		private var _deleteing:Boolean;
+		
 		private var _inScreen:Boolean;
 
 		/**
@@ -144,6 +146,8 @@ package com.d5power.objects
 		 */ 
 		public function changeController(ctrl:BaseControler):void
 		{
+			action = Actions.Wait;
+			
 			if(_controler!=null)
 			{
 				_controler.unsetupListener();
@@ -303,6 +307,7 @@ package com.d5power.objects
 			_direction = v;
 			if(_displayer!=null) _displayer.direction = _direction;
 		}
+		
 		/**
 		 * 获取当前角色的方向配置信息
 		 */ 
@@ -346,7 +351,7 @@ package com.d5power.objects
 		 */ 
 		protected function renderAction():void
 		{
-			if(_displayer is ISwfDisplayer) (_displayer as ISwfDisplayer).render();
+			if(_displayer) _displayer.render();
 		}
 		
 		/**

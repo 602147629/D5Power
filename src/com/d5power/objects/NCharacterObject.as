@@ -36,7 +36,7 @@ package com.d5power.objects
 			return _enable;
 		}
 		
-		NSD5Power function set $say(s:String):void
+		public function set $say(s:String):void
 		{
 			if(s==null || s=='null') s='';
 			_say = s;
@@ -133,6 +133,7 @@ package com.d5power.objects
 		 */		
 		public function updateMissionData():void
 		{
+			if(uid==0) return;
 			if(_missionIndex==-1)
 			{
 				if(_bmd && contains(_bmd)) removeChild(_bmd);

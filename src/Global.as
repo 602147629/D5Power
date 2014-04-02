@@ -92,6 +92,16 @@ package
 		public static var DieSaveTime:uint = 10000;
 		
 		/**
+		 * 屏幕宽，若为0则自动读取
+		 */ 
+		public static var SCREEN_W:uint = 0;
+		
+		/**
+		 * 屏幕高，若为0则自动读取
+		 */ 
+		public static var SCREEN_H:uint = 0;
+		
+		/**
 		 * 舞台宽度
 		 */ 
 		public static var W:uint=1000;

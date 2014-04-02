@@ -69,21 +69,25 @@ package com.d5power.objects
 			{
 				(_pool.shift() as EffectObject);
 			}
-			trace("资源池数量"+_pool.length);
 		}
 		
 		public static function getInstance():EffectObject
 		{
 			if(_pool.length>0)
-				return _pool.shift();
-			else
+			{
+				var eff:EffectObject = _pool.shift();
+				return eff;
+			}else{
 				return new EffectObject(_passwd);
+			}
 		}
 		
 		private static function back2Pool(obj:EffectObject):void
 		{
-			trace("资源池数量："+_pool.length);
-			if(_pool.indexOf(obj)==-1) _pool.push(obj);
+			if(_pool.indexOf(obj)==-1)
+			{
+				_pool.push(obj);
+			}
 		}
 		
 		public function EffectObject(passwd:String)
@@ -227,16 +231,16 @@ package com.d5power.objects
 		
 		public function dispose():void
 		{
-			_sonDeep = 0;
-			_sonSpeed = 0;
-			_sonAngle = 0;
+			_sonDeep = NaN;
+			_sonSpeed = NaN;
+			_sonAngle = NaN;
 			_sonFrame = -1;
 			_makeSon = false;
 			_rotation = 0;
 			_rotationSpeed = 0;
 			_moveAngle = 0;
 			_moveSpeed = 0;
-			_playSpeed = PLAY_SPEED;
+			_playSpeed = 0;
 			_actionMode = 0;
 			_runMode = 0;
 			_zoom = 1;
@@ -244,12 +248,22 @@ package com.d5power.objects
 			_moveDistnce = 0;
 			_blend = 0;
 			_lowLv = 0;
+			
 			_totalframe = 0;
 			_deleteing = false;
+			_playFrame = 0;
+			_pos.x = _pos.y = 0;
+			_inScreen = false;
+			_data = null;
+			
+			_time = 0;
+			_frametime = 0;
+			
+			_reslist = null;
 			
 			_bmd.rotation = 0;
 			_bmd.scaleX = _bmd.scaleY = 1;
-			_bmd.bitmapData.dispose();
+			if(_bmd.bitmapData) _bmd.bitmapData.dispose();
 			_bmd.bitmapData=null;
 			
 			if(parent) parent.removeChild(this);
@@ -320,13 +334,17 @@ package com.d5power.objects
 		
 		
 		
+		private var lastRender:uint;
 		public function renderMe():void
 		{
 			if(!stage)
 			{
 				deleteing = true;
+				return;
 			}
-			if(!_reslist || _deleteing) return;
+			if(!_reslist || _deleteing || Global.Timer-lastRender<_playSpeed) return;
+			
+			lastRender = Global.Timer;
 			var cost_time:Number = (getTimer() - _time) / _playSpeed;
 			if (_frametime != cost_time)
 			{

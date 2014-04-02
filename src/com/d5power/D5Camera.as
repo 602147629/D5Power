@@ -30,7 +30,7 @@ package com.d5power
 		/**
 		 * 分布渲染时间限制。每次渲染的最大允许占用时间，单位毫秒
 		 */ 
-		public static var RenderMaxTime:uint = 10;
+		public static var RenderMaxTime:uint = 5;
 		
 		/**
 		 * 摄像机可视区域

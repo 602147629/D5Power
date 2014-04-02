@@ -11,48 +11,48 @@ package com.d5power.controller
 		/**
 		 * 特殊状态：复活
 		 */ 
-		public static var RELIVE:int = -1;
+		public static const RELIVE:int = -1;
 		/**
 		 * Stop 停止
 		 * */
-		public static var Stop:int=0; 
+		public static const Stop:int=0; 
 		/**
 		 * Run 跑动
 		 * */
-		public static var Run:int=1;
+		public static const Run:int=1;
 		/**
 		 * Attack 物理攻击
 		 * */
-		public static var Attack:int=2;
+		public static const Attack:int=2;
 		/**
 		 * 弓箭攻击
 		 * */
-		public static var BowAtk:int=3;
+		public static const BowAtk:int=3;
 		
 		/**
 		 * 坐下
 		 */ 
-		public static var Sit:int = 4;
+		public static const Sit:int = 4;
 		
 		/**
 		 * 死亡 5
 		 */ 
-		public static var Die:int = 5;
+		public static const Die:int = 5;
 		
 		/**
 		 * 拾取
 		 */ 
-		public static var Pickup:uint = 6;
+		public static const Pickup:uint = 6;
 		
 		/**
 		 * 被攻击
 		 */
-		public static var BeAtk:uint = 7;
+		public static const BeAtk:uint = 7;
 		
 		/**
 		 * 等待（备战）8
 		 */ 
-		public static var Wait:uint = 8;
+		public static const Wait:uint = 8;
 		
 		/**
 		 * 若无特殊情况，只播放一次的动作

@@ -6,9 +6,6 @@ package com.d5power.core
 	
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
-	import flash.filesystem.File;
-	import flash.filesystem.FileMode;
-	import flash.filesystem.FileStream;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;

@@ -40,6 +40,11 @@ package com.d5power.objects
 		 */ 
 		protected var checkSize:uint = 100;
 		
+		/**
+		 * 恢复传送检测的精度（角色如果传送失败，则必须跑出该距离才能恢复传送）
+		 */ 
+		protected var recheckSize:uint = 200;
+		
 		public function RoadPoint(ctrl:BaseControler=null)
 		{
 			objectName = 'RoadPoint';
@@ -49,13 +54,18 @@ package com.d5power.objects
 		override protected function renderAction():void
 		{
 			super.renderAction();
-			if(!lock && Global.Timer-lastCheck>checkfps && D5Game.me.scene.Player!=null)
+			if(Global.Timer-lastCheck>checkfps && D5Game.me.scene.Player!=null)
 			{
 				lastCheck = Global.Timer;
-				if(Point.distance(D5Game.me.scene.Player._POS,pos)<checkSize)
+				if(lock)
 				{
-					D5Game.me.changeScene(toMap,toX,toY);
-					lock = true;
+					if(Point.distance(D5Game.me.scene.Player._POS,pos)>recheckSize) lock=false;
+				}else{
+					if(Point.distance(D5Game.me.scene.Player._POS,pos)<checkSize)
+					{
+						D5Game.me.changeScene(toMap,toX,toY);
+						lock = true;
+					}
 				}
 			}
 		}

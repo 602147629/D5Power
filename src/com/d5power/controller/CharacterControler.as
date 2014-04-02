@@ -56,7 +56,7 @@ package com.d5power.controller
 		protected var xKey:int;
 		protected var yKey:int;
 		
-		protected var _k:Number = Math.sin(Math.PI*45/180);
+		protected static const _k:Number = 0.7071067811865475;//Math.sin(Math.PI*45/180);
 		
 		protected var _listnerSetuped:Boolean=false;
 		
@@ -450,7 +450,7 @@ package com.d5power.controller
 		protected function clickSomeBody(o:GameObject):void
 		{
 			// mission click
-			if(o is NCharacterObject) D5Game.me.scene.missionCallBack(o as NCharacterObject);
+			if(o is NCharacterObject && o['uid']>0) D5Game.me.scene.missionCallBack(o as NCharacterObject);
 			
 			
 			// do some thing
@@ -474,7 +474,7 @@ package com.d5power.controller
 		 */ 
 		protected function onClick(e:MouseEvent):void
 		{
-			if(isStatic) return;
+			if(isStatic || !D5Game.me.canController) return;
 			
 			// 检查是否点到某对象
 			var clicker:GameObject = D5Game.me.scene.perc.getClicker(e.stageX,e.stageY);
@@ -485,7 +485,7 @@ package com.d5power.controller
 			}
 			
 			// 计算世界坐标
-			_endTarget = WorldMap.me.getWorldPostion(e.stageX,e.stageY).clone();
+			_endTarget = WorldMap.me.getWorldPostion(D5Game.me.stageX,D5Game.me.stageY).clone();
 			
 			// 自动清掉后续动作，因为是在控制移动
 			clearWalkComplate();

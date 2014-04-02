@@ -12,7 +12,7 @@ package com.d5power.display
 		protected var delete_fun:Function;
 		internal var _stayTime:int;
 		
-		public static var STARTY:uint = 100;
+		public static var STARTY:uint = 200;
 		
 		private static var noticeMap:Array = [0,0,0,0,0,0];
 		private static var autoShift:uint = 0;
@@ -63,7 +63,7 @@ package com.d5power.display
 			var lable:D5TextField = new D5TextField('',color);
 			lable.htmlText = content;
 			lable.fontBorder = config==null || config.borderColor==null ? 0x000000 : config.borderColor;
-			lable.fontSize = config==null || config.size==null ? 14 : config.size;
+			lable.fontSize = config==null || config.size==null ? 16 : config.size;
 			if(config!=null && config.width!=null) lable.maxWidth = config.width;
 			lable.x = lable.y = padding;
 			lable.autoGrow();

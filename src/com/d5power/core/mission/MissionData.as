@@ -198,7 +198,6 @@ package com.d5power.core.mission
 		 */ 
 		public function check(checker:IMissionDispatcher):Boolean
 		{
-//			if(!checker.canSee(_id)) return false;
 			if(_type==GIVE) return true;
 			
 			_iscomplate=true;
@@ -213,6 +212,7 @@ package com.d5power.core.mission
 							_iscomplate = _iscomplate && checker.hasItemNum(int(need.value))>=int(need.num);
 							break;
 						default:
+							if(checker.hasChecker(need.type)) _iscomplate = _iscomplate && checker.publicCheck(need.type,need.value,need.num);
 							break;
 					}
 				}
@@ -241,13 +241,10 @@ package com.d5power.core.mission
 							checker.getMoney(int(give.value));
 							break;
 						case MissionNR.R_EXP:
-							
 							checker.getExp(int(give.value));
 							break;
 						case MissionNR.R_MISSION:
 							Global.userdata.addMissionById(int(give.Value));
-							//checker.getCanSeeMission(int(give.value));
-							//give.num > 0 ? checker.getCanSeeMission(give.value) : checker.lostCanSeeMission(give.value);
 							break;
 					}
 				}
