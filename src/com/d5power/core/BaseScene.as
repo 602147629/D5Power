@@ -460,6 +460,22 @@ package com.d5power.core
 		}
 		
 		/**
+		 * 根据uid获取对应的角色
+		 */ 
+		public function getCharacterByUid(uid:uint):NCharacterObject
+		{
+			for(var i:uint=0,j:uint = _objects.length;i<j;i++)
+			{
+				if((_objects[i] is NCharacterObject) && (_objects[i] as NCharacterObject).uid==uid)
+				{
+					return _objects[i];
+				}
+			}
+			
+			return null;
+		}
+		
+		/**
 		 * 得到所有游戏对象
 		 */
 		public function get objList():Array
@@ -557,29 +573,36 @@ package com.d5power.core
 
 			if(Global.Timer-_lastOrder>_orderTime)
 			{
+				ReCut();
+				
 				_lastOrder = Global.Timer;
 				_inScreen.sortOn("zOrder",Array.NUMERIC);
-
+				
 				var orderCount:uint = _inScreen.length;
 				// 交换层次对象
 				var child:DisplayObject;	// 场景对象
 				var child_now:DisplayObject;
+				
 				while(orderCount--)
 				{
 					child_now = _inScreen[orderCount];
 					if(orderCount<_layer_go.numChildren)
 					{
 						child = _layer_go.getChildAt(orderCount);
-						if(child!=child_now && _layer_go.contains(child_now)) _layer_go.setChildIndex(child_now,orderCount);
+						if(child!=child_now && _layer_go.contains(child_now))
+						{
+							_layer_go.setChildIndex(child_now,orderCount);
+						}
 					}
 				}
+
 				if(_container.contains(map.dbuffer))
 				{
 					_container.setChildIndex(map.dbuffer,1);
 				}else{
 					trace("[BaseScene] 未在背景容器中发现");
 				}
-				ReCut();
+				
 			}
 			
 			// 循环对象
