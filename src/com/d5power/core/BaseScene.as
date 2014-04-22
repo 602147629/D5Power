@@ -393,7 +393,7 @@ package com.d5power.core
 		public function $insertObject(obj:IGO):void
 		{
 			if(_inScreen.indexOf(obj)==-1) _inScreen.push(obj);
-			_layer_go.addChild(obj as DisplayObject);
+			if(!_layer_go.contains(obj as DisplayObject)) _layer_go.addChild(obj as DisplayObject);
 		}
 		
 		/**
@@ -573,7 +573,7 @@ package com.d5power.core
 
 			if(Global.Timer-_lastOrder>_orderTime)
 			{
-				ReCut();
+				
 				
 				_lastOrder = Global.Timer;
 				_inScreen.sortOn("zOrder",Array.NUMERIC);
@@ -591,6 +591,7 @@ package com.d5power.core
 						child = _layer_go.getChildAt(orderCount);
 						if(child!=child_now && _layer_go.contains(child_now))
 						{
+							trace('需要排序，当前',orderCount,'位置是',child,'要替换为',child_now);
 							_layer_go.setChildIndex(child_now,orderCount);
 						}
 					}
@@ -603,14 +604,15 @@ package com.d5power.core
 					trace("[BaseScene] 未在背景容器中发现");
 				}
 				
+				ReCut();
 			}
 			
 			// 循环对象
 			var target:IGO;
-			if(_nowRend<0) _nowRend = _objects.length;
+			if(_nowRend<0) _nowRend = _inScreen.length;
 			while(_nowRend--)
 			{
-				target = _objects[_nowRend];
+				target = _inScreen[_nowRend];
 				if(!target.inScreen) continue;
 				target.renderMe();
 				if(getTimer()-Global.Timer>D5Camera.RenderMaxTime) break;
