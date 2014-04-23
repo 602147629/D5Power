@@ -1,5 +1,6 @@
 package com.d5power.objects
 {
+	import flash.display.DisplayObjectContainer;
 	import flash.geom.Point;
 
 	public interface IGO
@@ -14,5 +15,6 @@ package com.d5power.objects
 		function get inScreen():Boolean;
 		function get zOrder():int;
 		function setPos(px:Number,py:Number):void;
+		function get parent():DisplayObjectContainer;
 	}
 }

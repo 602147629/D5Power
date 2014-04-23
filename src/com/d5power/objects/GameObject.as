@@ -119,8 +119,9 @@ package com.d5power.objects
 		
 		public function set inScreen(v:Boolean):void
 		{
+			if(v==_inScreen) return;
 			_inScreen = v;
-			_inScreen ? D5Game.me.scene.$insertObject(this) : D5Game.me.scene.$removeObject(this);
+			v ? D5Game.me.scene.$insertObject(this) : D5Game.me.scene.$removeObject(this);
 		}
 		
 		/**
@@ -171,7 +172,7 @@ package com.d5power.objects
 			pos.y = py;
 			zorder = pos.y;
 			
-			if(D5Camera.cameraView.contains(px,py)) inScreen=true;
+			//if(D5Camera.cameraView.contains(px,py)) inScreen=true;
 		}
 		
 		/**
@@ -180,7 +181,7 @@ package com.d5power.objects
 		public function reSetPos(px:Number,py:Number):void
 		{
 			setPos(px,py);
-			if(controler!=null) controler.clearPath();
+			if(_controler!=null) _controler.clearPath();
 		}
 
 		/**

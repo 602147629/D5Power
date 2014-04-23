@@ -127,6 +127,7 @@ package com.d5power.objects
 		
 		public function set inScreen(v:Boolean):void
 		{
+			if(v==_inScreen) return;
 			_inScreen = v;
 			_inScreen ? D5Game.me.scene.$insertEffect(this,_lowLv==1) : D5Game.me.scene.$removeObject(this);
 		}

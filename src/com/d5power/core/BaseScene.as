@@ -380,9 +380,9 @@ package com.d5power.core
 
 			if(D5Camera.cameraView.containsPoint(o._POS))
 			{
-				o.inScreen = true;
+				o.inScreen = true;	// 在IGO接口的inScene中会自动调用$insertObject
 			}else{
-				o.inScreen = false;
+				o.inScreen = false;	// 在IGO接口的inScene中会自动调用$removeObject
 			}
 		}
 		
@@ -391,7 +391,7 @@ package com.d5power.core
 		 * 向场景中新增对象
 		 */ 
 		public function $insertObject(obj:IGO):void
-		{
+		{	
 			if(_inScreen.indexOf(obj)==-1) _inScreen.push(obj);
 			if(!_layer_go.contains(obj as DisplayObject)) _layer_go.addChild(obj as DisplayObject);
 		}
@@ -421,6 +421,7 @@ package com.d5power.core
 		 */ 
 		public function $insertEffect(obj:IGO,lowLv:Boolean):void
 		{
+			if(_inScreen.indexOf(obj)==-1) _inScreen.push(obj);
 			lowLv ? _layer_effect_down.addChild(obj as DisplayObject) : _layer_effect.addChild(obj as DisplayObject);
 		}
 		
@@ -563,7 +564,7 @@ package com.d5power.core
 			// 每帧必须运行的位置计算
 			for(var i:int = _objects.length-1;i>=0;i--)
 			{
-				_objects[i].deleteing ? removeObject(i) : _objects[i].runPos()
+				_objects[i].deleteing ? removeObject(i) : _objects[i].runPos();
 			}
 			
 			for(i=_inScreen.length-1;i>=0;i--)
@@ -573,7 +574,7 @@ package com.d5power.core
 
 			if(Global.Timer-_lastOrder>_orderTime)
 			{
-				
+				ReCut();
 				
 				_lastOrder = Global.Timer;
 				_inScreen.sortOn("zOrder",Array.NUMERIC);
@@ -591,7 +592,6 @@ package com.d5power.core
 						child = _layer_go.getChildAt(orderCount);
 						if(child!=child_now && _layer_go.contains(child_now))
 						{
-							trace('需要排序，当前',orderCount,'位置是',child,'要替换为',child_now);
 							_layer_go.setChildIndex(child_now,orderCount);
 						}
 					}
@@ -603,8 +603,6 @@ package com.d5power.core
 				}else{
 					trace("[BaseScene] 未在背景容器中发现");
 				}
-				
-				ReCut();
 			}
 			
 			// 循环对象
@@ -630,22 +628,21 @@ package com.d5power.core
 		
 		public function clear():void
 		{
-			var obj:GameObject;
+			var obj:IGO;
+			
+			if(player!=null) player.inScreen=false;
 			
 			while(_objects.length)
 			{
 				obj = _objects.shift();
-				if(obj && obj.parent)
-				{
-					obj.parent.removeChild(obj);
-					obj.dispose();
-				}
+				if(obj && obj.parent) obj.parent.removeChild(obj as DisplayObject);
+				if(obj!=player) obj.dispose();
 			}
 
 			while(_inScreen.length)
 			{
 				obj = _inScreen.shift();
-				if(obj && obj.parent) obj.parent.removeChild(obj);
+				if(obj && obj.parent) obj.parent.removeChild(obj as DisplayObject);
 			}
 			
 			while(_layer_effect.numChildren) _layer_effect.removeChildAt(0);
